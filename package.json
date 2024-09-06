@@ -1,0 +1,10 @@
+{
+  "name": "greenspirit",
+  "version": "1.0.0",
+  "description": "An application that helps you get a better idea of how green your energy is.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Arthur Sluÿters & William Sluÿters",
+  "license": "ISC"
+}
