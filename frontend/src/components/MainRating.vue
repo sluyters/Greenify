@@ -6,113 +6,107 @@ import ProductionTypeIcon from './ProductionTypeIcon.vue';
 import type { EnergyProductionDay } from '@/types/EnergyProductionDay.type';
 
 // Properties
-const props = defineProps<{
-  data?: EnergyProductionDay
-}>();
+interface Props {
+  scrolled?: boolean;
+  data?: EnergyProductionDay;
+}
+const { data = undefined, scrolled = false } = defineProps<Props>();
 
 // Router
 const router = useRouter();
 
-// State
-const scrollPosition = ref(0);
-
 // Computed properties
-const changeColor = computed(() => scrollPosition.value > 100 ? true : false);
 const dayString = computed(() => {
-  if (props.data) {
-    return props.data.date.toLocaleDateString(undefined, { weekday: 'long' })
+  if (data) {
+    return data.date.toLocaleDateString(undefined, { weekday: 'long' })
   } else {
     return undefined;
   }
 })
 const dateString = computed(() => {
-  if (props.data) {
-    return props.data.date.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })
+  if (data) {
+    return data.date.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })
   } else {
     return undefined;
   }
 });
 
 // Functions
-function updateScroll() {
-  scrollPosition.value = window.scrollY;
-}
-
 function onClick() {
-  if (props.data) {
-    router.push({ path: '/details', query: { id: props.data.id } });
+  if (data) {
+    router.push({ path: '/details', query: { id: data.id } });
   }
 }
-
-// Hooks
-onMounted(() => {
-  window.addEventListener('scroll', updateScroll);
-});
 </script>
 
 <template>
-  <div
-    v-if="data"
-    @click="onClick" 
-    class="group flex rounded-2xl cursor-pointer bg-black/20 backdrop-blur-md border-slate-700 w-full transition-colors duration-500 text-white h-64 p-4 gap-4" 
-    :class="{ 'bg-transparent': changeColor, 'hover:duration-200 hover:bg-transparent hover:border': !changeColor }"
+  <div 
+    class="group h-[28rem] w-full rounded-2xl overflow-hidden bg-gray-700/70 transition-colors" 
+    :class="{ 'bg-transparent duration-500': scrolled && data }"
   >
-    <!-- Rating -->
-    <div class="flex-none h-full flex rounded-xl bg-slate-900 duration-500" :class="{'bg-transparent scale-110': changeColor, 'group-hover:bg-slate-800': !changeColor }">
-      <RatingLetterIcon :rating=".9" class="w-full h-full text-slate-300"/>
-      <!-- <IconLetterA /> -->
-    </div>
-    <!-- Details -->
-    <div class="flex-1 flex flex-col justify-around">
-      <div class="font-bold mb-4">
-        <div class="text-6xl text-slate-400">Today</div>
-        <div class="text-4xl text-slate-300">{{ dateString }}</div>
-      </div>
-      <div class="flex flex-col justify-between gap-4">
-        <div v-for="item, index in data.productionDetails.slice(0, 2)" :key="index" class="flex-none flex flex-row items-center gap-4">
-          <!-- Icon -->
-          <div class="flex-none w-8">
-            <ProductionTypeIcon :type="item.name" class="text-white"/>
-            <!-- <IconSolar /> -->
+    <Transition
+      enter-active-class="transition-opacity duration-150"
+      leave-active-class="transition-opacity duration-150"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
+      mode="out-in"
+    >
+      <!-- Data display -->
+      <div 
+        v-if="data"
+        class="group flex flex-row justify-center h-full w-full cursor-pointer"
+        :class="{ 'cursor-default': scrolled }"
+      >
+        <!-- Letter + date -->
+        <div 
+          class="flex-shrink-0 flex-grow-0 basis-auto
+            flex flex-col items-center
+            w-96 transition-all"
+          :class="{ 'group-hover:bg-gray-700/80': !scrolled }"
+        >
+          <div class="flex-initial p-4 text-6xl font-bold text-white">
+            Today
           </div>
-          <!-- Percentage -->
-          <div class="flex-auto h-3 bg-slate-500 rounded-md">
-            <div class="h-full ms-0 bg-white rounded-md" :style="{ width: (item.power / data.totalPower) * 100 + '%'}"></div>
+          <div class="flex-1 min-h-0 p-2">
+            <RatingLetterIcon :rating=".9" class="max-h-full text-white"/>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Skeleton loader -->
-  <div
-    v-else
-    class="rounded-2xl bg-slate-800 w-full text-white h-64 p-4"
-  >
-    <div class="flex w-full h-full gap-4 animate-pulse">
-      <!-- Rating -->
-      <div class="flex-none h-full flex rounded-xl bg-slate-700">
-        <RatingLetterIcon :rating="1.0" class="w-full h-full text-transparent"/>
-      </div>
-      <!-- Details -->
-      <div class="flex-1 flex flex-col justify-around">
-        <div class="mb-4">
-          <div class="w-64 h-14 bg-slate-700 rounded-md mb-2"></div>
-          <div class="w-32 h-9 bg-slate-700 rounded-md"></div>
-          <!-- <div class="text-6xl text-slate-400">Today</div>
-          <div class="text-4xl text-slate-300">{{ dateString }}</div> -->
-        </div>
-        <div class="flex flex-col justify-between gap-4">
-          <div v-for="index in 2" :key="index" class="flex-none flex flex-row items-center gap-4">
-            <!-- Icon -->
-            <div class="flex-none h-8 w-8 bg-slate-700 rounded-md">
-            </div>
-            <!-- Percentage -->
-            <div class="flex-auto h-3 bg-slate-700 rounded-md">
-            </div>
+          <div class="flex-initial p-4 text-4xl font-bold text-white">
+            Very good <!-- TODO -->
           </div>
         </div>
+        <!-- Illustration -->
+        <div 
+          class="flex-auto h-full w-full overflow-hidden transition-all"
+          :class="{ 'opacity-0 flex-grow-[0.01] w-0': scrolled }"
+        >
+          <img 
+            src="/background/energy-good.jpg"
+            class="w-full h-full group-hover:scale-110 transition-all"
+          />
+        </div>
       </div>
-    </div>
+
+      <!-- Skeleton loader -->
+      <div 
+        v-else
+        class="group flex flex-row h-full w-full"
+      >
+        <!-- Letter + date -->
+        <div 
+          class="flex-shrink-0 flex-grow-0 basis-auto
+            flex flex-col items-center
+            w-96"
+        >
+          <div class="flex-initial w-52 h-16 bg-white/20 rounded-xl my-4 animate-pulse"></div>
+          <div class="flex-1 min-h-0 p-2 bg-white/20 rounded-[50%] animate-pulse">
+            <RatingLetterIcon :rating="1.0" class="max-h-full m-auto text-transparent"/>
+          </div>
+          <div class="flex-initial w-80 h-10 bg-white/20 rounded-xl my-4 animate-pulse"></div>
+        </div>
+        <!-- Illustration -->
+        <div class="flex-auto h-full w-full overflow-hidden bg-white/20 animate-pulse">
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>

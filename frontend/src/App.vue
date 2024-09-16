@@ -5,7 +5,7 @@ import NavBar from './components/NavBar.vue';
 </script>
 
 <template>
-  <body class="bg-teal-100 pt-16 min-h-screen box-border bg-energy-good bg-no-repeat bg-contain">
+  <body>
     <header>
       <NavBar class="z-50">
         <RouterLink to="/">Forecast</RouterLink>
@@ -21,9 +21,7 @@ import NavBar from './components/NavBar.vue';
         </nav>
       </div> -->
     </header>
-    <div class="container mx-auto py-8">
-      <RouterView />
-    </div>
+    <RouterView class="pt-16 min-h-screen"/>
   </body>
 </template>
 

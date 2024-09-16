@@ -33,7 +33,5 @@ const iconComponentName = computed(() => {
 </script>
 
 <template>
-  <div v-bind="$attrs">
-    <component :is="iconComponentName"></component>
-  </div>
+  <component :is="iconComponentName"></component>
 </template>
