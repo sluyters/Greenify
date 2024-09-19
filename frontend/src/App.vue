@@ -8,9 +8,9 @@ import NavBar from './components/NavBar.vue';
   <body>
     <header>
       <NavBar class="z-50">
-        <RouterLink to="/">Forecast</RouterLink>
-        <RouterLink to="/archive">Archive</RouterLink>
-        <RouterLink to="/help">Help</RouterLink>
+        <RouterLink to="/" exact-active-class="p-2 rounded-md bg-white/10">Forecast</RouterLink>
+        <RouterLink to="/archive" exact-active-class="p-2 rounded-md bg-white/10">Archive</RouterLink>
+        <RouterLink to="/help" exact-active-class="p-2 rounded-md bg-white/10">Help</RouterLink>
       </NavBar>
       <!-- <div class="wrapper">
         <HelloWorld msg="You did it!" />

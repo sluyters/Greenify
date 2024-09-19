@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import type { EnergyProductionDay } from '@/types/EnergyProductionDay.type';
-import IconCoal from './icons/electricity/IconCoal.vue';
-import IconNuclearPlant from './icons/electricity/IconNuclearPlant.vue';
-import IconSolar from './icons/electricity/IconSolar.vue';
 import RatingLetterIcon from './RatingLetterIcon.vue';
 import { computed } from 'vue';
 import ProductionTypeIcon from './ProductionTypeIcon.vue';
-import { useRouter } from 'vue-router';
 import type { EnergyProductionType } from '@/types/EnergyProductionType.type';
 
 // Properties
@@ -15,32 +11,24 @@ interface Props {
 }
 const { data } = defineProps<Props>();
 
-// Router
-const router = useRouter();
-
 // Computed properties
+const date = computed(() => {
+  return new Date(data.date);
+});
 const sortedProductionDetails = computed(() => {
-  if (data) {
-    return data.productionDetails.slice().sort((a: EnergyProductionType, b: EnergyProductionType) => a.name.localeCompare(b.name))
-  } else {
-    return undefined;
-  }
+  return data.productionDetails.slice().sort((a: EnergyProductionType, b: EnergyProductionType) => a.name.localeCompare(b.name))
 });
 const dayString = computed(() => {
-    return data.date.toLocaleDateString(undefined, { weekday: 'long' });
+    return date.value.toLocaleDateString(undefined, { weekday: 'long' });
 })
 const dateString = computed(() => {
-    return data.date.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' });
+    return date.value.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' });
 });
 
-// Functions
-function onClick() {
-  router.push({ path: '/details', query: { id: data.id } });
-}
 </script>
 
 <template>
-  <tr class="w-full h-32 border-b-2  last:border-b-0 border-white/10 hover:bg-gray-700/80 transition-colors cursor-pointer text-white" @click="onClick">
+  <tr class="w-full h-32 hover:bg-gray-700/80 transition-colors cursor-pointer text-white">
     <!-- Date -->
     <th class="min-w-48 px-4 text-left">
       <div class="text-3xl">
@@ -59,7 +47,7 @@ function onClick() {
     <!-- Details -->
     <td v-if="data" class="w-[99%] px-8">
       <div class="flex flex-row flex-wrap justify-start gap-x-8 gap-y-4">
-        <div v-for="item, index in sortedProductionDetails" :key="index" class="flex-none flex flex-row items-center gap-2">
+        <div v-for="item, index in sortedProductionDetails" :key="index" class="flex-none flex flex-row items-center gap-2" :class="{ 'text-white/20': item.power === 0 }">
           <!-- Icon -->
           <div class="flex-none h-8">
             <ProductionTypeIcon :type="item.name"/>

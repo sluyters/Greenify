@@ -28,7 +28,7 @@ const iconComponentName = computed(() => {
   } else {
     return IconLetterA;
   }
-})
+});
 
 </script>
 

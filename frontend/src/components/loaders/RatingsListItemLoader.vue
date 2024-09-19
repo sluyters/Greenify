@@ -4,7 +4,7 @@ import ProductionTypeIcon from '../ProductionTypeIcon.vue';
 </script>
 
 <template>
-  <tr class="w-full h-32 p-4 gap-16 border-b-2 last:border-b-0 border-white/10 transition-colors animate-pulse">
+  <tr class="w-full h-32 p-4 gap-16 transition-colors animate-pulse">
     <!-- Date -->
     <th class="min-w-48 px-4">
       <div class="w-40 h-9 my-2 bg-white/20 rounded-xl"></div>
