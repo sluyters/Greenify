@@ -22,7 +22,7 @@ const route = useRoute();
 // Computed
 const theme = computed(() => {
   if (data.value) {
-    return getEnergyTheme(data.value.productionScore);
+    return getEnergyTheme(data.value.score);
   } else {
     return -1;
   }

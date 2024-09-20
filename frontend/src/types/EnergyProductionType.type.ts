@@ -1,5 +1,5 @@
 export type EnergyProductionType = {
-  name: string,
+  type: string,
   isForecast: boolean,
   power: number
 };

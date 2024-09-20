@@ -23,17 +23,17 @@ const router = useRouter();
 const ratingDescription = computed(() => {
   if (!data) {
     return '';
-  } else if (data.productionScore < 1 / 7) {
+  } else if (data.score < 1 / 7) {
     return 'Terrible';
-  } else if (data.productionScore < 2 / 7) {
+  } else if (data.score < 2 / 7) {
     return 'Poor';
-  } else if (data.productionScore < 3 / 7) {
+  } else if (data.score < 3 / 7) {
     return 'Mediocre';
-  } else if (data.productionScore < 4 / 7) {
+  } else if (data.score < 4 / 7) {
     return 'Average';
-  } else if (data.productionScore < 5 / 7) {
+  } else if (data.score < 5 / 7) {
     return 'Good';
-  } else if (data.productionScore < 6 / 7) {
+  } else if (data.score < 6 / 7) {
     return 'Very good';
   } else {
     return 'Excellent';
@@ -106,7 +106,7 @@ function onClick() {
             {{ today ? 'Today' : dateString + '.' }}
           </div>
           <div class="flex-1 min-h-0 p-2">
-            <RatingLetterIcon :rating="data.productionScore" class="max-h-full text-white"/>
+            <RatingLetterIcon :rating="data.score" class="max-h-full text-white"/>
           </div>
           <div class="flex-initial p-4 text-4xl font-bold text-white">
             {{ ratingDescription }}

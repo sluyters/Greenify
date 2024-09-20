@@ -16,7 +16,7 @@ const date = computed(() => {
   return new Date(data.date);
 });
 const sortedProductionDetails = computed(() => {
-  return data.productionDetails.slice().sort((a: EnergyProductionType, b: EnergyProductionType) => a.name.localeCompare(b.name))
+  return data.productionDetails.slice().sort((a: EnergyProductionType, b: EnergyProductionType) => a.type.localeCompare(b.type))
 });
 const dayString = computed(() => {
     return date.value.toLocaleDateString(undefined, { weekday: 'long' });
@@ -41,7 +41,7 @@ const dateString = computed(() => {
 
     <!-- Rating -->
     <td v-if="data" class="whitespace-nowrap px-4">
-      <RatingLetterIcon :rating="data.productionScore" class="w-20" />
+      <RatingLetterIcon :rating="data.score" class="w-20" />
     </td>
 
     <!-- Details -->
@@ -50,7 +50,7 @@ const dateString = computed(() => {
         <div v-for="item, index in sortedProductionDetails" :key="index" class="flex-none flex flex-row items-center gap-2" :class="{ 'text-white/20': item.power === 0 }">
           <!-- Icon -->
           <div class="flex-none h-8">
-            <ProductionTypeIcon :type="item.name"/>
+            <ProductionTypeIcon :type="item.type"/>
             <!-- <IconSolar /> -->
           </div>
           <!-- Percentage -->

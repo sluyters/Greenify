@@ -34,7 +34,7 @@ const { data, headers, error } = useFetch(url);
 // Computed
 const theme = computed(() => {
   if (data.value && data.value[0]) {
-    return getEnergyTheme(data.value[0].productionScore);
+    return getEnergyTheme(data.value[0].score);
   } else {
     return -1;
   }

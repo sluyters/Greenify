@@ -1,0 +1,1 @@
+File structure inspired by [github.com/goldbergyoni/nodebestpractices](https://github.com/goldbergyoni/nodebestpractices/blob/master/sections/projectstructre/createlayers.md)
