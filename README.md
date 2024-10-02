@@ -1,2 +1,4 @@
-# GreenSpirit
-An application that helps you get a better idea of how green your energy is.
+# Greenify
+A web-application built with Vue.js that aims to help people consume greener electricity at lower prices.
+
+This is a work in progress displaying dummy data.
