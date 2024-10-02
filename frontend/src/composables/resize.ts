@@ -6,7 +6,6 @@ export function useResizeObserver(elem: Readonly<ShallowRef<HTMLDivElement | nul
 
   const resizeObserver = new ResizeObserver((entries) => {
     for (const entry of entries) {
-      console.log(entry);
       if (entry.contentBoxSize && entry.contentBoxSize[0]) {
         width.value = entry.contentBoxSize[0].inlineSize;
         height.value = entry.contentBoxSize[0].blockSize;

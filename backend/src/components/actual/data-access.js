@@ -25,12 +25,41 @@ function avgPriceHelper(rows) {
   return result;
 }
 
-function getAvgPricePerDay() {
+/**
+ * 
+ * @param {string} fromDate ISO-format date at which to start extraction, included
+ * @param {string} toDate ISO-format date at which at which to stop extraction, included
+ * @returns 
+ */
+function getAvgPricePerDayByDate(fromDate, toDate) {
   return new Promise((resolve, reject) => {
-    db.all('SELECT date(DateTime) AS Date, avg(Price) AS AvgPrice FROM PriceForecast\
+    db.all('SELECT date(DateTime) AS Date, avg(Price) AS AvgPrice FROM PriceActual\
+      WHERE Date >= date($fromDate) AND Date <= date($toDate)\
       GROUP BY Date\
-      ORDER BY Date DESC;', {}, (err, rows) => {
+      ORDER BY Date DESC;', {
+        $fromDate: fromDate,
+        $toDate: toDate
+      }, (err, rows) => {
         if (err) {
+          reject(`Failed to get average price per day: ${err.message}`);
+        } else {
+          resolve(avgPriceHelper(rows));
+        }
+      });
+  });
+}
+
+function getAvgPricePerDayByPage(page, limit) {
+  return new Promise((resolve, reject) => {
+    db.all('SELECT date(DateTime) AS Date, avg(Price) AS AvgPrice FROM PriceActual\
+      GROUP BY Date\
+      ORDER BY Date DESC\
+      LIMIT $limit OFFSET $offset;', {
+        $limit: limit,
+        $offset: page * limit
+      }, (err, rows) => {
+        if (err) {
+          console.log(limit, page)
           reject(`Failed to get average price per day: ${err.message}`);
         } else {
           resolve(avgPriceHelper(rows));
@@ -55,12 +84,16 @@ function avgPowerHelper(rows) {
   return result;
 }
 
-function getAvgPowerPerDay() {
+function getAvgPowerPerDayByDate(fromDate, toDate) {
   return new Promise((resolve, reject) => {
     db.all('SELECT date(DateTime) AS Date, Type, avg(Power) AS AvgPower\
-      FROM PowerForecast\
+      FROM PowerActual\
+      WHERE Date >= date($fromDate) AND Date <= date($toDate)\
       GROUP BY Date, Type\
-      ORDER BY Date DESC;', {}, (err, rows) => {
+      ORDER BY Date DESC;', {
+        $fromDate: fromDate,
+        $toDate: toDate
+      }, (err, rows) => {
         if (err) {
           reject(`Failed to get average power per day: ${err.message}`);
         } else {
@@ -69,6 +102,27 @@ function getAvgPowerPerDay() {
       });
   });
 }
+
+function getAvgPowerPerDayByPage(page, limit) {
+  return new Promise((resolve, reject) => {
+    db.all('SELECT Selection.Date, PowerActual.Type, avg(PowerActual.Power) AS AvgPower\
+      FROM PowerActual\
+      JOIN (SELECT DISTINCT date(DateTime) AS Date FROM PowerActual ORDER BY Date DESC LIMIT $limit OFFSET $offset) AS Selection\
+      ON date(PowerActual.DateTime) = Selection.Date\
+      GROUP BY Selection.Date, PowerActual.Type\
+      ORDER BY Selection.Date DESC;', {
+        $limit: limit,
+        $offset: page * limit
+      }, (err, rows) => {
+        if (err) {
+          reject(`Failed to get average power per day: ${err.message}`);
+        } else {
+          resolve(avgPowerHelper(rows));
+        }
+      });
+  });
+}
+
 
 function overviewHelper(priceResults, powerResults) {
   let result = [];
@@ -85,19 +139,24 @@ function overviewHelper(priceResults, powerResults) {
   return result;
 }
 
-function getDaysOverview() {
-  return Promise.all([getAvgPricePerDay(), getAvgPowerPerDay()])
+function getDaysOverviewByDate(fromDate, toDate) {
+  return Promise.all([getAvgPricePerDayByDate(fromDate, toDate), getAvgPowerPerDayByDate(fromDate, toDate)])
+    .then(([priceResults, powerResults]) => overviewHelper(priceResults, powerResults));
+}
+
+function getDaysOverviewByPage(page, limit) {
+  return Promise.all([getAvgPricePerDayByPage(page, limit), getAvgPowerPerDayByPage(page, limit)])
     .then(([priceResults, powerResults]) => overviewHelper(priceResults, powerResults));
 }
 
 function getDayOverview(date) {
-  return getDaysOverview()
-    .then((result) => result.filter((dayOverview) => dayOverview.date === date)[0]);
+  return getDaysOverviewByDate(date, date)
+    .then((result) => result[0]);
 }
 
 function getDayPowerDetail(date) {
   return new Promise((resolve, reject) => {
-    db.all('SELECT DateTime, Type, Power FROM PowerForecast\
+    db.all('SELECT DateTime, Type, Power FROM PowerActual\
       WHERE date(DateTime) = date($date)\
       ORDER BY DateTime DESC;', {
         $date: date
@@ -134,7 +193,7 @@ function getDayPowerDetail(date) {
 
 function getDayPriceDetail(date) {
   return new Promise((resolve, reject) => {
-    db.all('SELECT DateTime, Price FROM PriceForecast\
+    db.all('SELECT DateTime, Price FROM PriceActual\
       WHERE date(DateTime) = date($date)\
       ORDER BY DateTime DESC;', {
         $date: date
@@ -164,106 +223,58 @@ function getDayDetail(date) {
     });
 }
 
-function getDaysCount() {
-  return new Promise((resolve, reject) => {
-    db.get('SELECT count(DISTINCT date(DateTime)) AS Count FROM PriceForecast;', [], (err, rows) => {
-      if (err) {
-        reject(`Failed to get item: ${err.message}`);
-      } else {
-        resolve(rows.Count);
-      }
-    })
-  });
-}
-
-module.exports = {
-  getDayDetail,
-  getDaysOverview,
-  getDaysCount
-}
 
 
 
-// const fs = require('fs');
-// const path = require('path');
-// const sqlite3 = require('sqlite3').verbose();
-// const ENERGY_DATA = require('../../data');
-
-// const DB_PATH = path.resolve(__dirname, './forecast.db');
-
-// const fillDB = !fs.existsSync(DB_PATH);
-
-// const db = new sqlite3.Database(DB_PATH, (err) => {
-//   if (err) {
-//     console.error(err.message);
-//   } else {
-//     console.log('Connected to the \'forecast\' database.')
-//   }
-// });
-
-
-
-// if (fillDB) {
-//   db.serialize();
-//   // Create tables
-//   db.run('CREATE TABLE IF NOT EXISTS Production (\
-//     ProductionID INTEGER PRIMARY KEY,\
-//     Date TEXT NOT NULL,\
-//     Score FLOAT NOT NULL)');
-//   db.run('CREATE TABLE IF NOT EXISTS Detail (\
-//     ProductionID INTEGER NOT NULL,\
-//     Type TEXT NOT NULL,\
-//     Power FLOAT NOT NULL,\
-//     PRIMARY KEY(ProductionID, Type),\
-//     FOREIGN KEY(ProductionID) REFERENCES Production(ProductionID))');
-//   for (const item of ENERGY_DATA) {
-//     addItem(item);
-//   }
-//   db.parallelize();
-//   console.log('Created the \'forecast\' database.') 
-// }
-
-
-// function addItem(item) {
-//   // TODO
-//   let productionValues = `("${item.date}", ${item.score})`;
-//   console.log(productionValues)
-//   db.get(`INSERT INTO Production (Date, Score) VALUES ${productionValues} RETURNING ProductionID`, [], (err, row) => {
+// function addEnergyRecord(actual) {
+//   db.get('INSERT INTO EnergyActual (Date, Price) VALUES ($date, $price) RETURNING ID', {
+//     $date: actual.date.toISOString(),
+//     $price: actual.price.toString()
+//   }, (err, row) => {
 //     if (err) {
 //       console.error(err.message);
 //     } else {
-//       let productionID = row['ProductionID']; 
-//       let detailValues = '';
-//       for (let detail of item.productionDetails) {
-//         if (detailValues) {
-//           detailValues += ", "
-//         }
-//         detailValues += `(${productionID}, "${detail.type}", ${detail.power})`
+//       let actualId = row['ID'];
+//       for (let fuel of actual.fuel) {
+//         console.log(fuel.power)
+//         db.run('INSERT INTO FuelActual VALUES ($actualId, $type, $power)', {
+//           $actualId: actualId,
+//           $type: fuel.type,
+//           $power: fuel.power.toString()
+//         }, (err) => {
+//           if (err) {
+//             console.error(err.message);
+//           }
+//         });
 //       }
-//       db.run(`INSERT INTO Detail VALUES ${detailValues}`, [], (err) => {
-//         if (err) {
-//           console.error(err.message);
-//         } else {
-//           // TODO
-//         }
-//       });
 //     }
 //   });
 // }
 
-// function removeItem(id) {
+// function removeEnergyRecord(id) {
 //   // return item;
 // }
 
-// function updateItem(id, item) {
+// function updateEnergyRecord(id, item) {
 //   // db.run('UPDATE production ')
 // }
 
-// function getItem(id) {
+// function getEnergyRecord(id) {
 //   return getItems(id, id+1).then((rows) => rows[0]);
 // }
 
-// function getItems(startId, endId) {
+// function getEnergyRecords(startDate, endDate) {
+//   return new Promise((resolve, reject) => {
+//     db.all('SELECT FuelActual.ID', {
+//       $startDate: startDate,
+//       $endDate: endDate
+//     }, (err, rows) => {
+
+//     });
+//   });
+
+
+
 //   return new Promise((resolve, reject) => {
 //     db.all(`SELECT Production.ProductionID, Production.Date, Production.Score, Type, Power FROM Production JOIN Detail ON Production.ProductionID = Detail.ProductionID WHERE Production.ProductionID >= ${startId} AND Production.ProductionID < ${endId} ORDER BY Production.ProductionID`, [], (err, rows) => {
 //       if (err) {
@@ -299,23 +310,26 @@ module.exports = {
 //   });
 // }
 
-// function getItemsCount() {
-//   return new Promise((resolve, reject) => {
-//     db.get('SELECT COUNT(*) AS Count FROM Production', [], (err, rows) => {
-//       if (err) {
-//         reject(`Failed to get item: ${err.message}`);
-//       } else {
-//         resolve(rows.Count);
-//       }
-//     })
-//   });
-// }
+function getDaysCount() {
+  return new Promise((resolve, reject) => {
+    db.get('SELECT count(DISTINCT date(DateTime)) AS Count FROM PriceActual;', [], (err, rows) => {
+      if (err) {
+        reject(`Failed to get item: ${err.message}`);
+      } else {
+        resolve(rows.Count);
+      }
+    })
+  });
+}
 
-// module.exports = {
-//   addItem,
-//   removeItem,
-//   updateItem,
-//   getItem,
-//   getItems,
-//   getItemsCount
-// }
+module.exports = {
+  // addEnergyRecord,
+  // removeEnergyRecord,
+  // updateEnergyRecord,
+  // getEnergyRecord,
+  // getEnergyRecords,
+  getDayDetail,
+  getDaysOverviewByDate,
+  getDaysOverviewByPage,
+  getDaysCount
+}

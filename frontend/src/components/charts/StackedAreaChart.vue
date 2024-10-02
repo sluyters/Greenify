@@ -9,7 +9,7 @@ type WideDataItem = {
 
 // Properties
 interface Props {
-  data?: { date: Date, data: { [key: string]: number }}[]; 
+  data?: { dateTime: string, power: { [key: string]: number }}[]; 
   marginTop?: number;
   marginBottom?: number;
   marginLeft?: number;
@@ -18,31 +18,10 @@ interface Props {
 }
 const { 
   data = [
-    { date: new Date('2024-09-10T00:00:00.000'), data: { 'Wind': 3, 'Nuclear': 40, 'Solar': 0 }},
-    { date: new Date('2024-09-10T01:00:00.000'), data: { 'Wind': 5, 'Nuclear': 40, 'Solar': 0 }},
-    { date: new Date('2024-09-10T02:00:00.000'), data: { 'Wind': 4, 'Nuclear': 39, 'Solar': 0 }},
-    { date: new Date('2024-09-10T03:00:00.000'), data: { 'Wind': 4, 'Nuclear': 39, 'Solar': 0 }},
-    { date: new Date('2024-09-10T04:00:00.000'), data: { 'Wind': 5, 'Nuclear': 40, 'Solar': 0 }},
-    { date: new Date('2024-09-10T05:00:00.000'), data: { 'Wind': 6, 'Nuclear': 40, 'Solar': 0 }},
-    { date: new Date('2024-09-10T06:00:00.000'), data: { 'Wind': 8, 'Nuclear': 40, 'Solar': 0 }},
-    { date: new Date('2024-09-10T07:00:00.000'), data: { 'Wind': 10, 'Nuclear': 41, 'Solar': 3 }},
-    { date: new Date('2024-09-10T08:00:00.000'), data: { 'Wind': 11, 'Nuclear': 41, 'Solar': 5 }},
-    { date: new Date('2024-09-10T09:00:00.000'), data: { 'Wind': 13, 'Nuclear': 42, 'Solar': 12 }},
-    { date: new Date('2024-09-10T10:00:00.000'), data: { 'Wind': 16, 'Nuclear': 41, 'Solar': 18 }},
-    { date: new Date('2024-09-10T11:00:00.000'), data: { 'Wind': 18, 'Nuclear': 40, 'Solar': 24 }},
-    { date: new Date('2024-09-10T12:00:00.000'), data: { 'Wind': 17, 'Nuclear': 39, 'Solar': 28 }},
-    { date: new Date('2024-09-10T13:00:00.000'), data: { 'Wind': 16, 'Nuclear': 38, 'Solar': 29 }},
-    { date: new Date('2024-09-10T14:00:00.000'), data: { 'Wind': 14, 'Nuclear': 39, 'Solar': 30 }},
-    { date: new Date('2024-09-10T15:00:00.000'), data: { 'Wind': 12, 'Nuclear': 40, 'Solar': 29 }},
-    { date: new Date('2024-09-10T16:00:00.000'), data: { 'Wind': 10, 'Nuclear': 41, 'Solar': 23 }},
-    { date: new Date('2024-09-10T17:00:00.000'), data: { 'Wind': 10, 'Nuclear': 41, 'Solar': 17 }},
-    { date: new Date('2024-09-10T18:00:00.000'), data: { 'Wind': 9, 'Nuclear': 42, 'Solar': 12 }},
-    { date: new Date('2024-09-10T19:00:00.000'), data: { 'Wind': 8, 'Nuclear': 39, 'Solar': 7 }},
-    { date: new Date('2024-09-10T20:00:00.000'), data: { 'Wind': 9, 'Nuclear': 38, 'Solar': 4 }},
-    { date: new Date('2024-09-10T21:00:00.000'), data: { 'Wind': 9, 'Nuclear': 39, 'Solar': 2 }},
-    { date: new Date('2024-09-10T22:00:00.000'), data: { 'Wind': 10, 'Nuclear': 40, 'Solar': 0 }},
-    { date: new Date('2024-09-10T23:00:00.000'), data: { 'Wind': 12, 'Nuclear': 41, 'Solar': 0 }},
-    { date: new Date('2024-09-11T00:00:00.000'), data: { 'Wind': 12, 'Nuclear': 40, 'Solar': 0 }},
+    { dateTime: '2024-09-10T00:00:00.000', power: { 'Wind': 3, 'Nuclear': 40, 'Solar': 0 }},
+    { dateTime: '2024-09-10T01:00:00.000', power: { 'Wind': 5, 'Nuclear': 40, 'Solar': 0 }},
+    { dateTime: '2024-09-10T02:00:00.000', power: { 'Wind': 4, 'Nuclear': 39, 'Solar': 0 }},
+    { dateTime: '2024-09-10T03:00:00.000', power: { 'Wind': 4, 'Nuclear': 39, 'Solar': 0 }},
   ], 
   marginTop = 10,
   marginBottom = 40,
@@ -59,16 +38,16 @@ const gy = useTemplateRef('my-gy');
 
 // Computed
 const xScale = computed(() => {
-  const [xMin, xMax] = d3.extent(data.map((item) => item.date));
+  const [xMin, xMax] = d3.extent(data.map((item) => new Date(item.dateTime)));
   return d3
     .scaleTime()
     .domain([xMin || 0, xMax || 0])
-    .nice(d3.timeDay)
+    // .nice(d3.timeDay) // TODO Fix timezones
     .range([marginLeft, width.value - marginRight]);
 });
 const yScale = computed(() => {
   const dataSum = data.map((item) => {
-    return Object.entries(item.data)
+    return Object.entries(item.power)
       .reduce((prev, [, value]) => prev + value, 0);
   });
   const max = Math.max(...dataSum);
@@ -80,7 +59,7 @@ const yScale = computed(() => {
 
 const parsedData = computed(() => {
   return data.map((item) => {
-    const parsedItem: WideDataItem = Object.assign({ date: item.date }, item.data);
+    const parsedItem: WideDataItem = Object.assign({ date: new Date(item.dateTime) }, item.power);
     return parsedItem;
   });
 });
@@ -99,7 +78,7 @@ const yGrid = computed(() => {
 const series = computed(() => {
   const stackSeries = d3
     .stack()
-    .keys(d3.union(data.flatMap(item => Object.keys(item.data))))
+    .keys(d3.union(data.flatMap(item => Object.keys(item.power))))
     .order(d3.stackOrderDescending)
     .offset(d3.stackOffsetNone);
   return stackSeries(parsedData.value)

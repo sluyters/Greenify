@@ -1,9 +1,9 @@
 import { ref, toValue, watchEffect, type Ref } from "vue";
 
 export function useFetch(url: string | Ref<string> | (() => string)) {
-  const data = ref(null);
+  const data = ref<any>(null);
   const headers = ref<Headers | null>(null);
-  const error = ref(null);
+  const error = ref<any>(null);
 
   function fetchData() {
     // Reset state before fetching

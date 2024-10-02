@@ -5,8 +5,9 @@ import RatingsList from '@/components/RatingsList.vue';
 import { useFetch } from '@/composables/fetch';
 import { useScrollDetection } from '@/composables/scroll';
 import { getEnergyTheme } from '@/functions/energy-theme';
+import type { EnergyProductionDay } from '@/types/EnergyProductionDay.type';
 // import type { EnergyProductionDay } from '@/types/EnergyProductionDay.type';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, type Ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 // Options
@@ -29,20 +30,23 @@ const scrolled = useScrollDetection();
 
 // Fetch data
 const url = computed(() => `${API_URL}:${API_PORT}/api/forecast`);
-const { data, headers, error } = useFetch(url);
+const { data, headers, error }: { data: Ref<EnergyProductionDay[]>, headers: Ref<any>, error: Ref<any>} = useFetch(url);
 
 // Computed
+const reversedData = computed(() => {
+  return data.value ? data.value.slice().reverse() : data.value;
+});
 const theme = computed(() => {
-  if (data.value && data.value[0]) {
-    return getEnergyTheme(data.value[0].score);
+  if (reversedData.value && reversedData.value[0]) {
+    return getEnergyTheme(reversedData.value[0].score);
   } else {
     return -1;
   }
 });
 
 // Functions
-function handleItemClick(id: number) {
-  router.push({ path: '/details', query: { type: 'forecast', id: id } });
+function handleItemClick(date: string) {
+  router.push({ path: '/details', query: { type: 'forecast', date: date } });
 }
 
 </script>
@@ -51,8 +55,8 @@ function handleItemClick(id: number) {
     <div v-bind="$attrs">
       <DynamicBackground class="-z-50" :scrolled="scrolled" :theme="theme" />
       <div class="container mx-auto py-8 flex flex-col gap-8 z-0">
-        <MainRating :data="data ? data[0] : undefined" @click-item="(id) => handleItemClick(id)" :scrolled="scrolled" :theme="theme" today/>
-        <RatingsList :data="data" @click-item="(id) => handleItemClick(id)"/>
+        <MainRating :data="reversedData ? reversedData[0] : undefined" @click-item="(date) => handleItemClick(date)" :scrolled="scrolled" :theme="theme" today/>
+        <RatingsList :data="reversedData" @click-item="(date) => handleItemClick(date)"/>
       </div>
     </div>
 </template>

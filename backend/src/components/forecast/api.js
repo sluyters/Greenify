@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { addItem, removeItem, updateItem, getItem, getItems, getItemsCount } = require('./data-access');
+const { getDaysCount, getDaysOverview, getDayDetail } = require('./data-access');
 
 router.get('/', (req, res) => {
-  Promise.all([getItems(1, 8), getItemsCount()])
+  Promise.all([getDaysOverview(), getDaysCount()])
     .then(([items, count]) => {
       res.header('Access-Control-Expose-Headers', 'X-Total-Count')
         .header('X-Total-Count', count)
@@ -19,26 +19,23 @@ router.post('/', (req, res) => {
   res.status(200).json(req.body);
 });
 
-router.get('/:id', (req, res) => {
-  let { id } = req.params;
-  id = Number.parseInt(id);
-  getItem(id)
+router.get('/:date', (req, res) => {
+  let { date } = req.params;
+  getDayDetail(date)
     .then((item) => res.status(200).json(item))
-    .catch((error) => res.status(404).json({ error: 'Item not found' }));
+    .catch((error) => res.status(404).json({ error: `Item not found: ${error}` }));
 })
 
 // TODO
-router.put('/:id', (req, res) => {
-  let { id } = req.params;
-  id = Number.parseInt(id);
+router.put('/:date', (req, res) => {
+  let { date } = req.params;
   // TODO
   res.status(200).json(req.body);
 });
 
 // TODO
-router.delete('/:id', (req, res) => {
-  let { id } = req.params;
-  id = Number.parseInt(id);
+router.delete('/:date', (req, res) => {
+  let { date } = req.params;
   // TODO
   // const item = ENERGY_DATA.find(item => item.id === id);
   if (!item) {

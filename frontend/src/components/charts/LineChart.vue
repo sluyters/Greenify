@@ -2,18 +2,17 @@
 import * as d3 from 'd3';
 import { useResizeObserver } from '@/composables/resize';
 import { computed, useTemplateRef, watch } from 'vue';
-import IconLetterA from '../icons/letters/IconLetterA.vue';
 import RatingLetterIcon from '../RatingLetterIcon.vue';
 import { getEnergyTheme } from '@/functions/energy-theme';
 
 // Properties
 interface DataItem { 
-  timestamp: Date; 
-  price: number; 
-  rating: number; 
+  dateTime: Date; 
+  value: number; 
 }
 interface Props {
-  data?: DataItem[];
+  // data?: DataItem[];
+  data: { price: DataItem[], score: DataItem[] };
   marginTop?: number;
   marginBottom?: number;
   marginLeft?: number;
@@ -21,33 +20,34 @@ interface Props {
   grid?: 'x' | 'y' | 'all' | 'none' | undefined | null;
 }
 const { 
-  data = [
-    { timestamp: new Date('2024-09-10T00:00:00.000'), price: 0.3, rating: 0.5 },
-    { timestamp: new Date('2024-09-10T01:00:00.000'), price: 0.35, rating: 0.52 },
-    { timestamp: new Date('2024-09-10T02:00:00.000'), price: 0.34, rating: 0.53 },
-    { timestamp: new Date('2024-09-10T03:00:00.000'), price: 0.34, rating: 0.55 },
-    { timestamp: new Date('2024-09-10T04:00:00.000'), price: 0.35, rating: 0.56 },
-    { timestamp: new Date('2024-09-10T05:00:00.000'), price: 0.36, rating: 0.56 },
-    { timestamp: new Date('2024-09-10T06:00:00.000'), price: 0.38, rating: 0.6 },
-    { timestamp: new Date('2024-09-10T07:00:00.000'), price: 0.40, rating: 0.65 },
-    { timestamp: new Date('2024-09-10T08:00:00.000'), price: 0.41, rating: 0.67 },
-    { timestamp: new Date('2024-09-10T09:00:00.000'), price: 0.39, rating: 0.70 },
-    { timestamp: new Date('2024-09-10T10:00:00.000'), price: 0.38, rating: 0.75 },
-    { timestamp: new Date('2024-09-10T11:00:00.000'), price: 0.36, rating: 0.8 },
-    { timestamp: new Date('2024-09-10T12:00:00.000'), price: 0.37, rating: 0.82 },
-    { timestamp: new Date('2024-09-10T13:00:00.000'), price: 0.36, rating: 0.84 },
-    { timestamp: new Date('2024-09-10T14:00:00.000'), price: 0.34, rating: 0.85 },
-    { timestamp: new Date('2024-09-10T15:00:00.000'), price: 0.32, rating: 0.84 },
-    { timestamp: new Date('2024-09-10T16:00:00.000'), price: 0.30, rating: 0.83 },
-    { timestamp: new Date('2024-09-10T17:00:00.000'), price: 0.29, rating: 0.8 },
-    { timestamp: new Date('2024-09-10T18:00:00.000'), price: 0.30, rating: 0.71 },
-    { timestamp: new Date('2024-09-10T19:00:00.000'), price: 0.28, rating: 0.60 },
-    { timestamp: new Date('2024-09-10T20:00:00.000'), price: 0.29, rating: 0.51 },
-    { timestamp: new Date('2024-09-10T21:00:00.000'), price: 0.29, rating: 0.40 },
-    { timestamp: new Date('2024-09-10T22:00:00.000'), price: 0.30, rating: 0.32 },
-    { timestamp: new Date('2024-09-10T23:00:00.000'), price: 0.32, rating: 0.25 },
-    { timestamp: new Date('2024-09-11T00:00:00.000'), price: 0.32, rating: 0.20 },
-  ], 
+  data,
+  // data = [
+  //   { dateTime: new Date('2024-09-10T00:00:00.000'), price: 0.3, score: 0.5 },
+  //   { dateTime: new Date('2024-09-10T01:00:00.000'), price: 0.35, score: 0.52 },
+  //   { dateTime: new Date('2024-09-10T02:00:00.000'), price: 0.34, score: 0.53 },
+  //   { dateTime: new Date('2024-09-10T03:00:00.000'), price: 0.34, score: 0.55 },
+  //   { dateTime: new Date('2024-09-10T04:00:00.000'), price: 0.35, score: 0.56 },
+  //   { dateTime: new Date('2024-09-10T05:00:00.000'), price: 0.36, score: 0.56 },
+  //   { dateTime: new Date('2024-09-10T06:00:00.000'), price: 0.38, score: 0.6 },
+  //   { dateTime: new Date('2024-09-10T07:00:00.000'), price: 0.40, score: 0.65 },
+  //   { dateTime: new Date('2024-09-10T08:00:00.000'), price: 0.41, score: 0.67 },
+  //   { dateTime: new Date('2024-09-10T09:00:00.000'), price: 0.39, score: 0.70 },
+  //   { dateTime: new Date('2024-09-10T10:00:00.000'), price: 0.38, score: 0.75 },
+  //   { dateTime: new Date('2024-09-10T11:00:00.000'), price: 0.36, score: 0.8 },
+  //   { dateTime: new Date('2024-09-10T12:00:00.000'), price: 0.37, score: 0.82 },
+  //   { dateTime: new Date('2024-09-10T13:00:00.000'), price: 0.36, score: 0.84 },
+  //   { dateTime: new Date('2024-09-10T14:00:00.000'), price: 0.34, score: 0.85 },
+  //   { dateTime: new Date('2024-09-10T15:00:00.000'), price: 0.32, score: 0.84 },
+  //   { dateTime: new Date('2024-09-10T16:00:00.000'), price: 0.30, score: 0.83 },
+  //   { dateTime: new Date('2024-09-10T17:00:00.000'), price: 0.29, score: 0.8 },
+  //   { dateTime: new Date('2024-09-10T18:00:00.000'), price: 0.30, score: 0.71 },
+  //   { dateTime: new Date('2024-09-10T19:00:00.000'), price: 0.28, score: 0.60 },
+  //   { dateTime: new Date('2024-09-10T20:00:00.000'), price: 0.29, score: 0.51 },
+  //   { dateTime: new Date('2024-09-10T21:00:00.000'), price: 0.29, score: 0.40 },
+  //   { dateTime: new Date('2024-09-10T22:00:00.000'), price: 0.30, score: 0.32 },
+  //   { dateTime: new Date('2024-09-10T23:00:00.000'), price: 0.32, score: 0.25 },
+  //   { dateTime: new Date('2024-09-11T00:00:00.000'), price: 0.32, score: 0.20 },
+  // ], 
   marginTop = 10,
   marginBottom = 40,
   marginLeft = 40,
@@ -65,16 +65,16 @@ const gy2 = useTemplateRef('my-gy2');
 
 // Computed
 const xScale = computed(() => { 
-  const [xMin, xMax] = d3.extent(data.map((item) => item.timestamp));
+  const [xMin, xMax] = d3.extent(data.price.concat(data.score).map((item) => item.dateTime));
   console.log(xMin, xMax)
   return d3
     .scaleTime()
     .domain([xMin || 0, xMax || 0]) // TODO
-    .nice(d3.timeDay)
+    // .nice(d3.timeDay)
     .range([marginLeft, width.value - marginRight]);
 });
 const yScales = computed(() => {
-  const [priceMin, priceMax] = d3.extent(data.map((item) => item.price));
+  const [priceMin, priceMax] = d3.extent(data.price.map((item) => item.value));
   let priceScale = d3
     .scaleLinear()
     .domain([priceMin || 0, priceMax || 0])
@@ -85,23 +85,23 @@ const yScales = computed(() => {
     .range([height.value - marginBottom, marginTop])
   return {
     price: priceScale,
-    rating: rankingScale
+    score: rankingScale
   };
 });
 const lines = computed(() => {
   let priceLine = d3
   .line<DataItem>()
-    .x(d => xScale.value(d.timestamp))
-    .y(d => yScales.value.price(d.price))
+    .x(d => xScale.value(d.dateTime))
+    .y(d => yScales.value.price(d.value))
     .curve(d3.curveCatmullRom.alpha(0.5));
   let rankingLine = d3
     .line<DataItem>()
-    .x(d => xScale.value(d.timestamp))
-    .y(d => yScales.value.rating(d.rating))
+    .x(d => xScale.value(d.dateTime))
+    .y(d => yScales.value.score(d.value))
     .curve(d3.curveCatmullRom.alpha(0.5));
   return {
     price: priceLine,
-    rating: rankingLine
+    score: rankingLine
   };
 });
 const xGrid = computed(() => {
@@ -110,7 +110,7 @@ const xGrid = computed(() => {
     .slice(1);
 })
 const yGrid = computed(() => {
-  return yScales.value.rating
+  return yScales.value.score
     .ticks()
     .slice(1);
 })
@@ -129,7 +129,7 @@ watch([gx, xScale], ([newGx, newXSCale]) => {
 });
 watch([gy1, yScales], ([newGy1, newYScales]) => {
   if (newGy1) {
-    const yAxisGenerator = d3.axisLeft(newYScales.rating);
+    const yAxisGenerator = d3.axisLeft(newYScales.score);
     return d3
       .select(newGy1)
       .call(yAxisGenerator);
@@ -148,16 +148,16 @@ watch([gy2, yScales], ([newGy2, newYScales]) => {
 
 <template>
   <div class="flex flex-col w-full h-full">
-    <!-- Rating letters -->
+    <!-- Score letters -->
     <div class="flex-none w-full h-5">
       <svg xmlns="http://www.w3.org/2000/svg" :width="width" height="100%" :viewBox="`0 0 ${width} 20`">
         <g :transform="`translate(-${width / 2}, 0)`">
           <RatingLetterIcon
-            v-for="(item, index) in data.slice(1, -1)" :key="index" 
-            :rating="item.rating" 
-            :x="xScale(item.timestamp)"
+            v-for="(item, index) in data.score.slice(1, -1)" :key="index" 
+            :rating="item.value" 
+            :x="xScale(item.dateTime)"
             :y="0"
-            :class="{ 'text-orange-800': getEnergyTheme(item.rating) === 2, 'text-slate-500': getEnergyTheme(item.rating) === 1, 'text-teal-500': getEnergyTheme(item.rating) === 0 }"
+            :class="{ 'text-orange-800': getEnergyTheme(item.value) === 2, 'text-slate-500': getEnergyTheme(item.value) === 1, 'text-teal-500': getEnergyTheme(item.value) === 0 }"
           />
         </g>
       </svg>
@@ -209,14 +209,14 @@ watch([gy2, yScales], ([newGy2, newYScales]) => {
             stroke-dasharray="5,5"
             :x1="marginLeft"
             :x2="width - marginRight"
-            :y1="yScales.rating(value)"
-            :y2="yScales.rating(value)"
+            :y1="yScales.score(value)"
+            :y2="yScales.score(value)"
             stroke="#808080"
           />
         </g>
         <!-- Line -->
-        <path fill="none" stroke="url(#gradient)" stroke-width="5.5" :d="lines.rating(data) || undefined" />
-        <path fill="none" stroke="currentColor" stroke-width="5.5" :d="lines.price(data) || undefined" />
+        <path fill="none" stroke="url(#gradient)" stroke-width="5.5" :d="lines.score(data.score) || undefined" />
+        <path fill="none" stroke="currentColor" stroke-width="5.5" :d="lines.price(data.price) || undefined" />
         <!-- Axes -->
         <g ref="my-gx" class="text-sm" stroke-width="2.5" :transform="`translate(0, ${height - marginBottom})`" />
         <g ref="my-gy1" class="text-sm" stroke-width="2.5" :transform="`translate(${marginLeft}, 0)`" />

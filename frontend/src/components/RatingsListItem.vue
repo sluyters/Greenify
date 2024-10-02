@@ -3,7 +3,6 @@ import type { EnergyProductionDay } from '@/types/EnergyProductionDay.type';
 import RatingLetterIcon from './RatingLetterIcon.vue';
 import { computed } from 'vue';
 import ProductionTypeIcon from './ProductionTypeIcon.vue';
-import type { EnergyProductionType } from '@/types/EnergyProductionType.type';
 
 // Properties
 interface Props {
@@ -15,9 +14,9 @@ const { data } = defineProps<Props>();
 const date = computed(() => {
   return new Date(data.date);
 });
-const sortedProductionDetails = computed(() => {
-  return data.productionDetails.slice().sort((a: EnergyProductionType, b: EnergyProductionType) => a.type.localeCompare(b.type))
-});
+// const sortedProductionDetails = computed(() => {
+//   return data.avgPower.slice().sort((a: EnergyProductionType, b: EnergyProductionType) => a.type.localeCompare(b.type))
+// });
 const dayString = computed(() => {
     return date.value.toLocaleDateString(undefined, { weekday: 'long' });
 })
@@ -47,15 +46,15 @@ const dateString = computed(() => {
     <!-- Details -->
     <td v-if="data" class="w-[99%] px-8">
       <div class="flex flex-row flex-wrap justify-start gap-x-8 gap-y-4">
-        <div v-for="item, index in sortedProductionDetails" :key="index" class="flex-none flex flex-row items-center gap-2" :class="{ 'text-white/20': item.power === 0 }">
+        <div v-for="[type, power], index of Object.entries(data.avgPower)" :key="index" class="flex-none flex flex-row items-center gap-2" :class="{ 'text-white/20': power === 0 }">
           <!-- Icon -->
           <div class="flex-none h-8">
-            <ProductionTypeIcon :type="item.type"/>
+            <ProductionTypeIcon :type="type"/>
             <!-- <IconSolar /> -->
           </div>
           <!-- Percentage -->
           <div class="text-xl font-semibold">
-            {{ Math.round(10 * 100 * item.power / data.totalPower) / 10 + '%' }}
+            {{ Math.round(10 * 100 * power / data.totalPower) / 10 + '%' }}
           </div>
           <!-- <div class="flex-auto h-3 bg-slate-500 rounded-md">
             <div class="h-full ms-0 bg-white rounded-md" :style="{ width: (item.power / data.totalPower) * 100 + '%'}"></div>

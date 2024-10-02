@@ -16,16 +16,16 @@ const props = defineProps<{
 
 const iconComponentName = computed(() => {
   switch(props.type) {
-    case "biomass": return IconBiomass;
-    case "coal": return IconCoal;
-    case "geothermal": return IconGeothermal;
-    case "hydro": return IconHydro;
-    case "natural-gas": return IconNaturalGas;
-    case "nuclear": return IconNuclearPlant;
-    case "petrol": return IconPetrol;
-    case "solar": return IconSolar;
-    case "wind-offshore": return IconWind;
-    case "wind-onshore": return IconWind;
+    // case "biomass": return IconBiomass;
+    case "CP": return IconCoal;
+    // case "geothermal": return IconGeothermal;
+    case "WA": return IconHydro;
+    case "NG": return IconNaturalGas;
+    case "NU": return IconNuclearPlant;
+    case "LF": return IconPetrol;
+    case "SO": return IconSolar;
+    case "WI": return IconWind;
+    // case "wind-onshore": return IconWind;
     default: return undefined
   }
 })

@@ -70,7 +70,7 @@ const dateString = computed(() => {
 // Functions
 function onClick() {
   if (data) {
-    emit('click-item', data.id);
+    emit('click-item', data.date);
     // router.push({ path: '/details', query: { id: data.id } });
   }
 }

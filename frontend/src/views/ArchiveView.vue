@@ -2,7 +2,8 @@
 import RatingsList from '@/components/RatingsList.vue';
 import RatingsListPagination from '@/components/RatingsListPagination.vue';
 import { useFetch } from '@/composables/fetch';
-import { computed, onMounted, ref } from 'vue';
+import type { EnergyProductionDay } from '@/types/EnergyProductionDay.type';
+import { computed, onMounted, ref, type Ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 // Options
@@ -22,11 +23,11 @@ const page = ref(0);
 const limit = ref(7);
 
 // Fetch data
-const url = computed(() => `${API_URL}:${API_PORT}/api/archive?` + new URLSearchParams({
+const url = computed(() => `${API_URL}:${API_PORT}/api/actual?` + new URLSearchParams({
     page: page.value.toString(),
     limit: limit.value.toString(),
   }).toString());
-const { data, headers, error } = useFetch(url);
+const { data, headers, error }: { data: Ref<EnergyProductionDay[]>, headers: Ref<any>, error: Ref<any>} = useFetch(url);
 
 // Computed
 const itemsCount = computed(() => {
@@ -51,8 +52,8 @@ function handleRowsPerPageChange(newValue: number) {
   limit.value = newValue;
 }
 
-function handleItemClick(id: number) {
-  router.push({ path: '/details', query: { type: 'archive', id: id } });
+function handleItemClick(date: string) {
+  router.push({ path: '/details', query: { type: 'actual', date: date } });
 }
 
 // Hooks
@@ -65,7 +66,7 @@ onMounted(() => {
   <div v-bind="$attrs">
     <div class="fixed -z-40 top-0 bottom-0 left-0 right-0 bg-black"></div>
     <div class="container mx-auto py-8">
-      <RatingsList :data="data" :pagination="true" @click-item="(id) => handleItemClick(id)">
+      <RatingsList :data="data" :pagination="true" @click-item="(date) => handleItemClick(date)">
         <template #header>
           <RatingsListPagination 
             :page="page" 

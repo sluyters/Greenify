@@ -1,15 +1,12 @@
 const ENERGY_STRINGS: { [key: string]: string } = {
-  'biomass': 'Biomass',
-  'coal': 'Coal',
-  'geothermal': 'Geothermal',
-  'hydro': 'Hydro',
-  'natural-gas': 'Natural gas',
-  'nuclear': 'Nuclear',
-  'petrol': 'Oil',
-  'solar': 'Solar',
-  'wind-offshore': 'Wind (offshore)',
-  'wind-onshore': 'Wind (onshore)',
-  'other': 'Other'
+  'CP': 'Coal pulverized',
+  'WA': 'Water',
+  'NG': 'Natural gas',
+  'NU': 'Nuclear',
+  'LF': 'Liquid fuel',
+  'SO': 'Solar',
+  'WI': 'Wind',
+  'OTHER': 'Other'
 }
 
 export function getEnergyString(name: string): string {

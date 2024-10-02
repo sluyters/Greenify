@@ -27,10 +27,10 @@ const { data = null } = defineProps<Props>();
       mode="out-in"
     >
       <tbody v-if="data">
-        <RatingsListItem v-for="item in data" :key="item.id" :data="item"
+        <RatingsListItem v-for="(item, index) in data" :key="index" :data="item"
           class="border-b-2 border-white/10" 
           :class="{ 'last:border-b-0': !$slots.footer, 'first:border-t-2': $slots.header }"
-          @click="$emit('click-item', item.id)"
+          @click="$emit('click-item', item.date)"
         />
       </tbody>
       <tbody v-else>

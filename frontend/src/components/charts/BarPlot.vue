@@ -124,7 +124,7 @@ watch([gy, yScale], ([newGy, newYScale]) => {
           text-anchor="end"
           alignment-baseline="central"
         >
-          {{ value }}
+          {{ (Math.round(value * 10) / 10).toFixed(1) }}
         </text>
       </g>
       <!-- Axes -->
