@@ -1,6 +1,6 @@
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
-const { computeScore } = require('../../helpers');
+const { computeScore, formatAvgPrice, formatAvgPower, formatDaysOverview } = require('../../helpers');
 
 const DB_PATH = path.resolve(__dirname, '../../greenify.db');
 
@@ -14,16 +14,6 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
     console.log('Connected to the database.')
   }
 });
-
-function avgPriceHelper(rows) {
-  let result = rows.map((row) => {
-    return {
-      date: row.Date,
-      avgPrice: row.AvgPrice
-    }
-  });
-  return result;
-}
 
 /**
  * 
@@ -43,7 +33,7 @@ function getAvgPricePerDayByDate(fromDate, toDate) {
         if (err) {
           reject(`Failed to get average price per day: ${err.message}`);
         } else {
-          resolve(avgPriceHelper(rows));
+          resolve(formatAvgPrice(rows));
         }
       });
   });
@@ -62,26 +52,10 @@ function getAvgPricePerDayByPage(page, limit) {
           console.log(limit, page)
           reject(`Failed to get average price per day: ${err.message}`);
         } else {
-          resolve(avgPriceHelper(rows));
+          resolve(formatAvgPrice(rows));
         }
       });
   });
-}
-
-function avgPowerHelper(rows) {
-  let result = [];
-  let currentDate = null;
-  for (let row of rows) { 
-    if (!currentDate || currentDate.date !== row.Date) {
-      currentDate = {
-        date: row.Date,
-        avgPower: {}
-      };
-      result.push(currentDate);
-    }
-    currentDate.avgPower[row.Type] = row.AvgPower;
-  }
-  return result;
 }
 
 function getAvgPowerPerDayByDate(fromDate, toDate) {
@@ -97,7 +71,7 @@ function getAvgPowerPerDayByDate(fromDate, toDate) {
         if (err) {
           reject(`Failed to get average power per day: ${err.message}`);
         } else {
-          resolve(avgPowerHelper(rows));
+          resolve(formatAvgPower(rows));
         }
       });
   });
@@ -117,36 +91,20 @@ function getAvgPowerPerDayByPage(page, limit) {
         if (err) {
           reject(`Failed to get average power per day: ${err.message}`);
         } else {
-          resolve(avgPowerHelper(rows));
+          resolve(formatAvgPower(rows));
         }
       });
   });
 }
 
-
-function overviewHelper(priceResults, powerResults) {
-  let result = [];
-  for (let i = 0; i < priceResults.length; i++) {
-    let dateResult = {
-      date: priceResults[i].date, // TODO check if date is the same
-      avgPrice: priceResults[i].avgPrice,
-      avgPower: powerResults[i].avgPower,
-      score: computeScore(powerResults[i].avgPower),
-      totalPower: Object.values(powerResults[i].avgPower).reduce((a, b) => a + b)
-    };
-    result.push(dateResult)
-  } 
-  return result;
-}
-
 function getDaysOverviewByDate(fromDate, toDate) {
   return Promise.all([getAvgPricePerDayByDate(fromDate, toDate), getAvgPowerPerDayByDate(fromDate, toDate)])
-    .then(([priceResults, powerResults]) => overviewHelper(priceResults, powerResults));
+    .then(([priceResults, powerResults]) => formatDaysOverview(priceResults, powerResults));
 }
 
 function getDaysOverviewByPage(page, limit) {
   return Promise.all([getAvgPricePerDayByPage(page, limit), getAvgPowerPerDayByPage(page, limit)])
-    .then(([priceResults, powerResults]) => overviewHelper(priceResults, powerResults));
+    .then(([priceResults, powerResults]) => formatDaysOverview(priceResults, powerResults));
 }
 
 function getDayOverview(date) {
@@ -223,93 +181,6 @@ function getDayDetail(date) {
     });
 }
 
-
-
-
-// function addEnergyRecord(actual) {
-//   db.get('INSERT INTO EnergyActual (Date, Price) VALUES ($date, $price) RETURNING ID', {
-//     $date: actual.date.toISOString(),
-//     $price: actual.price.toString()
-//   }, (err, row) => {
-//     if (err) {
-//       console.error(err.message);
-//     } else {
-//       let actualId = row['ID'];
-//       for (let fuel of actual.fuel) {
-//         console.log(fuel.power)
-//         db.run('INSERT INTO FuelActual VALUES ($actualId, $type, $power)', {
-//           $actualId: actualId,
-//           $type: fuel.type,
-//           $power: fuel.power.toString()
-//         }, (err) => {
-//           if (err) {
-//             console.error(err.message);
-//           }
-//         });
-//       }
-//     }
-//   });
-// }
-
-// function removeEnergyRecord(id) {
-//   // return item;
-// }
-
-// function updateEnergyRecord(id, item) {
-//   // db.run('UPDATE production ')
-// }
-
-// function getEnergyRecord(id) {
-//   return getItems(id, id+1).then((rows) => rows[0]);
-// }
-
-// function getEnergyRecords(startDate, endDate) {
-//   return new Promise((resolve, reject) => {
-//     db.all('SELECT FuelActual.ID', {
-//       $startDate: startDate,
-//       $endDate: endDate
-//     }, (err, rows) => {
-
-//     });
-//   });
-
-
-
-//   return new Promise((resolve, reject) => {
-//     db.all(`SELECT Production.ProductionID, Production.Date, Production.Score, Type, Power FROM Production JOIN Detail ON Production.ProductionID = Detail.ProductionID WHERE Production.ProductionID >= ${startId} AND Production.ProductionID < ${endId} ORDER BY Production.ProductionID`, [], (err, rows) => {
-//       if (err) {
-//         reject(`Failed to get items: ${err.message}`);
-//       } else if (rows.length === 0) { 
-//         reject(`Failed to get items: Empty result.`)
-//       } else {
-//         let items = []
-//         let currentID = -1;
-//         let currentItem = null;
-//         for (let row of rows) {
-//           if (row.ProductionID !== currentID) { // Next item
-//             currentID = row.ProductionID;
-//             currentItem = {
-//               id: currentID,
-//               date: new Date(row.Date),
-//               score: row.Score,
-//               totalPower: 0,
-//               productionDetails: [],
-//             }
-//             items.push(currentItem);
-//           } 
-//           // Update current item
-//           currentItem.totalPower += row.Power;
-//           currentItem.productionDetails.push({
-//             type: row.Type,
-//             power: row.Power
-//           });
-//         }
-//         resolve(items);
-//       }
-//     });
-//   });
-// }
-
 function getDaysCount() {
   return new Promise((resolve, reject) => {
     db.get('SELECT count(DISTINCT date(DateTime)) AS Count FROM PriceActual;', [], (err, rows) => {
@@ -323,11 +194,6 @@ function getDaysCount() {
 }
 
 module.exports = {
-  // addEnergyRecord,
-  // removeEnergyRecord,
-  // updateEnergyRecord,
-  // getEnergyRecord,
-  // getEnergyRecords,
   getDayDetail,
   getDaysOverviewByDate,
   getDaysOverviewByPage,

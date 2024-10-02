@@ -29,6 +29,50 @@ function computeScore(powerGeneration) {
   return SCORE_FN_SLOPE * x + SCORE_FN_POINT;
 }
 
+function formatDaysOverview(priceResults, powerResults) {
+  let result = [];
+  for (let i = 0; i < priceResults.length; i++) {
+    let dateResult = {
+      date: priceResults[i].date, // TODO check if date is the same
+      avgPrice: priceResults[i].avgPrice,
+      avgPower: powerResults[i].avgPower,
+      score: computeScore(powerResults[i].avgPower),
+      totalPower: Object.values(powerResults[i].avgPower).reduce((a, b) => a + b)
+    };
+    result.push(dateResult)
+  } 
+  return result;
+}
+
+function formatAvgPrice(rows) {
+  let result = rows.map((row) => {
+    return {
+      date: row.Date,
+      avgPrice: row.AvgPrice
+    }
+  });
+  return result;
+}
+
+function formatAvgPower(rows) {
+  let result = [];
+  let currentDate = null;
+  for (let row of rows) { 
+    if (!currentDate || currentDate.date !== row.Date) {
+      currentDate = {
+        date: row.Date,
+        avgPower: {}
+      };
+      result.push(currentDate);
+    }
+    currentDate.avgPower[row.Type] = row.AvgPower;
+  }
+  return result;
+}
+
 module.exports = {
+  formatDaysOverview,
+  formatAvgPrice,
+  formatAvgPower,
   computeScore
 };
