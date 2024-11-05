@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import RatingLetterIcon from './RatingLetterIcon.vue';
 import type { EnergyProductionDay } from '@/types/EnergyProductionDay.type';
+import { useScrollPosition } from '@/composables/scroll';
 
 // Emits
 const emit = defineEmits(['click-item']);
@@ -10,11 +11,11 @@ const emit = defineEmits(['click-item']);
 // Properties
 interface Props {
   today?: boolean;
-  scrolled?: boolean;
+  collapsed?: boolean;
   theme?: number;
   data?: EnergyProductionDay | null;
 }
-const { data = null, theme = -1, scrolled = false, today = false } = defineProps<Props>();
+const { today = false, collapsed = false, theme = -1, data = null } = defineProps<Props>();
 
 // Router
 const router = useRouter();
@@ -51,20 +52,14 @@ const imgSrc = computed(() => {
       return '';
   }
 });
-// const dayString = computed(() => {
-//   if (data) {
-//     return data.date.toLocaleDateString(undefined, { weekday: 'long' });
-//   } else {
-//     return undefined;
-//   }
-// })
+const date = computed(() => {
+  return data ? new Date(data.date) : undefined;
+});
 const dateString = computed(() => {
-  if (data) {
-    const date = new Date(data.date);
-    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-  } else {
-    return undefined;
-  }
+  return date.value ? date.value.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+});
+const numDateString = computed(() => {
+    return date.value ? date.value.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' }) : '';
 });
 
 // Functions
@@ -78,8 +73,8 @@ function onClick() {
 
 <template>
   <div 
-    class="group h-[28rem] w-full rounded-2xl overflow-hidden transition-colors" 
-    :class="{ 'bg-transparent duration-500': scrolled && data, 'bg-gray-700/70': !scrolled }"
+    class="relative w-full h-full p-2 transition-colors duration-300 ease-out sm:p-4"
+    :class="{ 'bg-black/80 backdrop-blur-lg': collapsed, 'bg-transparent': !collapsed }"
   >
     <Transition
       enter-active-class="transition-opacity duration-150"
@@ -88,62 +83,72 @@ function onClick() {
       leave-to-class="opacity-0"
       mode="out-in"
     >
-      <!-- Data display -->
-      <div 
+      <!-- Data -->
+      <div
         v-if="data"
-        class="group flex flex-row justify-center h-full w-full"
-        :class="{ 'cursor-default': scrolled, 'cursor-pointer': !scrolled }"
-        @click="onClick"
+        class="group relative w-full h-full cursor-pointer overflow-hidden rounded-2xl sm:container sm:mx-auto"
+        :class="{ 'border border-transparent hover:border-gray-700': !collapsed }"
+        @click="onClick()"
       >
-        <!-- Letter + date -->
-        <div 
-          class="flex-shrink-0 flex-grow-0 basis-auto
-            flex flex-col items-center
-            w-96 transition-all"
-          :class="{ 'group-hover:bg-gray-700/80': !scrolled }"
-        >
-          <div class="flex-initial p-4 text-6xl font-bold text-white text-center">
-            {{ today ? 'Today' : dateString + '.' }}
-          </div>
-          <div class="flex-1 min-h-0 p-2">
-            <RatingLetterIcon :rating="data.score" class="max-h-full text-white"/>
-          </div>
-          <div class="flex-initial p-4 text-4xl font-bold text-white">
-            {{ ratingDescription }}
-          </div>
-        </div>
         <!-- Illustration -->
         <div 
-          class="h-full overflow-hidden transition-all"
-          :class="{ 'opacity-0 flex-grow-[0.01] w-0': scrolled, 'flex-auto w-full': !scrolled }"
+          class="absolute top-0 left-0 h-full w-full transition-opacity duration-300 ease-out"
+          :class="{ 'opacity-0': collapsed, 'opacity-100': !collapsed }"
         >
           <img 
             :src="imgSrc"
-            class="w-full h-full object-cover group-hover:scale-110 transition-all"
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-150"
           />
         </div>
-      </div>
-
-      <!-- Skeleton loader -->
-      <div 
-        v-else
-        class="group flex flex-row h-full w-full"
-      >
-        <!-- Letter + date -->
+        <!-- Score and date -->
         <div 
-          class="flex-shrink-0 flex-grow-0 basis-auto
-            flex flex-col items-center
-            w-96"
+          class="flex h-full p-2"
+          :class="{ 'flex-row justify-center items-center w-full gap-2': collapsed, 'flex-col justify-start items-start gap-2': !collapsed }"
         >
-          <div class="flex-initial w-52 h-16 bg-white/20 rounded-xl my-4 animate-pulse"></div>
-          <div class="flex-1 min-h-0 p-2 bg-white/20 rounded-[50%] animate-pulse">
-            <RatingLetterIcon :rating="1.0" class="max-h-full m-auto text-transparent"/>
+          <!-- Date -->
+          <div 
+            class="flex-initial flex text-3xl font-bold"
+            :class="{ 'flex-col items-end': collapsed, 'flex-row gap-2 bg-gray-700/60 backdrop-blur-md rounded-lg px-3 py-1': !collapsed }"
+          >
+            <div class="text-white text-right">
+              {{ today ? 'Today' : dateString }}
+            </div>
+            <div v-if="today" class="text-white/80">
+              {{ numDateString }}
+            </div>
           </div>
-          <div class="flex-initial w-80 h-10 bg-white/20 rounded-xl my-4 animate-pulse"></div>
+          <!-- Score letter -->
+          <div 
+            class="flex-none min-h-0 pb-3 pt-2 pl-2 pr-3"
+            :class="{ 'bg-gray-700/60 backdrop-blur-md rounded-lg': !collapsed }"
+          >
+              <RatingLetterIcon :rating="data.score" class="max-h-16 text-white"/>
+          </div>
+          <!-- Score description -->
+          <div 
+            class="flex-initial text-3xl font-bold text-white"
+            :class="{ 'bg-gray-700/60 backdrop-blur-md rounded-lg px-3 py-1': !collapsed }"
+          >
+            {{ ratingDescription }}
+          </div>
         </div>
-        <!-- Illustration -->
-        <div class="flex-auto h-full w-full overflow-hidden bg-white/20 animate-pulse">
+      </div>
+      
+      <!-- Skeleton loader -->
+      <div
+        v-else
+        class="relative w-full h-full cursor-pointer overflow-hidden rounded-2xl  sm:container sm:mx-auto flex p-2"
+        :class="{ 'flex-row justify-center items-center w-full gap-2': collapsed, 'flex-col justify-start items-start gap-2 bg-gray-700/70': !collapsed }"
+      >
+
+        <div class="flex-initial w-44 h-11 bg-white/20 rounded-lg animate-pulse"></div>
+        <div 
+          class="flex-none min-h-0 pb-3 pt-2 pl-2 pr-3 bg-white/20 rounded-lg animate-pulse"
+          :class="{ 'rounded-full': collapsed }"
+        >
+          <RatingLetterIcon :rating="1.0" class="max-h-16 text-transparent" :class="{ 'max-h-12': collapsed }"/>
         </div>
+        <div class="flex-initial w-36 h-11 bg-white/20 rounded-lg animate-pulse"></div>
       </div>
     </Transition>
   </div>

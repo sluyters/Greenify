@@ -7,7 +7,6 @@ const forecast = require('./components/forecast/api');
 const actual = require('./components/actual/api');
 
 
-
 app.use(cors());
 app.get('/', (req, res) => {
   res.status(200).send("Well done!");

@@ -25,8 +25,8 @@ const {
   ], 
   marginTop = 10,
   marginBottom = 40,
-  marginLeft = 40,
-  marginRight = 40,
+  marginLeft = 50,
+  marginRight = 10,
   grid = 'y',
 } = defineProps<Props>();
 

@@ -10,6 +10,18 @@ const IMPACT = {
   'OTHER': 0.230, // Biomass,...
 }
 
+// Exagerated impact of coal for testing purpose
+// const IMPACT = {
+//   'CP': 1.0, // Coal pulverized
+//   'LF': 0.9, // Liquid fuel
+//   'NG': 0.90, // Natural gas
+//   'NU': 0.006, // Nuclear
+//   'SO': 0.053, // Solar
+//   'WA': 0.024, // Water
+//   'WI': 0.011, // Wind
+//   'OTHER': 0.330, // Biomass,...
+// }
+
 const MIN_IMPACT = Math.min(...Object.values(IMPACT));
 const MAX_IMPACT = Math.max(...Object.values(IMPACT));
 
@@ -21,7 +33,13 @@ function computeScore(powerGeneration) {
   let x = 0;
   let totalPower = 0;
   for (let [type, power] of Object.entries(powerGeneration)) {
-    x += IMPACT[type] * power;
+    if (IMPACT[type] > 0.4) {
+      x += Math.pow(IMPACT[type], 1.0 / 8.0) * power;
+    } else if (IMPACT[type] > 0.2) {
+      x += Math.pow(IMPACT[type], 1.0 / 3.0) * power;
+    } else {
+      x += Math.pow(IMPACT[type], 2) * power;
+    }
     totalPower += power;
   }
   x /= totalPower;

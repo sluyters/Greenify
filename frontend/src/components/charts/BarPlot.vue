@@ -18,8 +18,8 @@ const {
   data = { 'Wind': 160, 'Nuclear': 410, 'Solar': 180 }, 
   marginTop = 10,
   marginBottom = 40,
-  marginLeft = 40,
-  marginRight = 40,
+  marginLeft = 10,
+  marginRight = 10,
   padding = 0.1,
   grid = 'all'
 } = defineProps<Props>();
@@ -107,25 +107,35 @@ watch([gy, yScale], ([newGy, newYScale]) => {
           class="fill-white/65 hover:fill-white/90"
         />
         <text
-          class="text-base font-bold"
-          :class="{ 'fill-gray-200': xScale(value) <= 100, 'fill-gray-700': xScale(value) > 100 }"
-          :x="xScale(0) + 10"
+          v-if="xScale(value) <= 100"
+          class="text-base font-bold fill-gray-200"
+          :x="xScale(value) + 10"
           :y="(yScale(key) || 0) + yScale.bandwidth() / 2"
           text-anchor="start"
           alignment-baseline="central"
         >
-          {{ key }} {{ xScale(value) <= 100 ? `(${value})` : '' }}
+          {{ key }} ({{ (Math.round(value * 10) / 10).toFixed(1) }})
         </text>
-        <text
-          v-if="xScale(value) > 100"
-          class="text-base font-bold fill-gray-600"
-          :x="xScale(value) - 10"
-          :y="(yScale(key) || 0) + yScale.bandwidth() / 2"
-          text-anchor="end"
-          alignment-baseline="central"
-        >
-          {{ (Math.round(value * 10) / 10).toFixed(1) }}
-        </text>
+        <template v-else>
+          <text
+            class="text-base font-bold fill-gray-700"
+            :x="xScale(0) + 10"
+            :y="(yScale(key) || 0) + yScale.bandwidth() / 2"
+            text-anchor="start"
+            alignment-baseline="central"
+          >
+            {{ key }}
+          </text>
+          <text
+            class="text-base font-bold fill-gray-600"
+            :x="xScale(value) - 10"
+            :y="(yScale(key) || 0) + yScale.bandwidth() / 2"
+            text-anchor="end"
+            alignment-baseline="central"
+          >
+            {{ (Math.round(value * 10) / 10).toFixed(1) }}
+          </text>
+        </template>
       </g>
       <!-- Axes -->
       <g ref="my-gx" class="text-sm" stroke-width="2.5" :transform="`translate(0, ${height - marginBottom})`" />

@@ -39,49 +39,49 @@ function onSelectNumRows(event) {
 </script>
 
 <template>
-  <tr class="w-full h-16">
-    <td colspan="100%" class="px-4">
-      <div class="flex flex-row justify-between">
+  <tr class="w-full">
+    <td colspan="100%" class="p-2 text-sm sm:p-4 sm:text-xl">
+      <div class="flex flex-col items-center justify-between max-sm:gap-2 sm:flex-row">
         <!-- Select number of results per page -->
-        <div class="flex-initial flex flex-row gap-2">
-          <label for="rows-per-page" class="flex-initial px-2 text-xl text-white">Rows per page:</label>
+        <div class="flex-initial flex flex-row items-center gap-1 sm:gap-2">
+          <label for="rows-per-page" class="flex-auto px-2 text-white font-semibold sm:text-xl">Rows per page:</label>
           <select
             @change="onSelectNumRows($event)"
             :value="rowsPerPage"
             name="rows-per-page" 
-            class="flex-initial h-8"
+            class="flex-initial h-8 w-10 border border-white/10 bg-gray-600/20 rounded-md text-white hover:bg-gray-500/20"
           >
-            <option value="7">7</option>
-            <option value="14">14</option>
-            <option value="28">28</option>
+            <option value="7" class="text-black">7</option>
+            <option value="14" class="text-black">14</option>
+            <option value="28" class="text-black">28</option>
           </select>
         </div>
         <!-- Change page -->
-        <div class="flex-initial flex flex-row gap-2">
-          <div class="flex-initial h-8 px-2 text-xl text-white items-center">
-            {{ rowsDisplayed }} of {{ rowsCount }}
-          </div>
+        <div class="flex-initial flex flex-row items-center gap-1 sm:gap-2">
           <button
             @click="$emit('page-change', -5)"
-            class="flex-initial border border-white/10 bg-gray-600/20 w-10 h-8 rounded-md hover:bg-gray-500/20"
+            class="flex-initial w-10 h-8 border border-white/10 bg-gray-600/20 rounded-md hover:bg-gray-500/20"
           >
             <ChevronDoubleLeftIcon class="size-6 m-auto text-white"></ChevronDoubleLeftIcon>
           </button>
           <button
             @click="$emit('page-change', -1)"
-            class="flex-initial border border-white/10 bg-gray-600/20 w-10 h-8 rounded-md hover:bg-gray-500/20"
+            class="flex-initial w-10 h-8 border border-white/10 bg-gray-600/20 rounded-md hover:bg-gray-500/20"
           >
             <ChevronLeftIcon class="size-6 m-auto text-white"></ChevronLeftIcon>
           </button>
+          <div class="flex-initial px-2 text-white">
+            {{ rowsDisplayed }} of {{ rowsCount }}
+          </div>
           <button
             @click="$emit('page-change', 1)" 
-            class="flex-initial border border-white/10 bg-gray-600/20 w-10 h-8 rounded-md hover:bg-gray-500/20"
+            class="flex-initial w-10 h-8 border border-white/10 bg-gray-600/20 rounded-md hover:bg-gray-500/20"
           >
             <ChevronRightIcon class="size-6 m-auto text-white"></ChevronRightIcon>
           </button>
           <button
             @click="$emit('page-change', 5)" 
-            class="flex-initial border border-white/10 bg-gray-600/20 w-10 h-8 rounded-md hover:bg-gray-500/20"
+            class="flex-initial w-10 h-8 border border-white/10 bg-gray-600/20 rounded-md hover:bg-gray-500/20"
           >
             <ChevronDoubleRightIcon class="size-6 m-auto text-white"></ChevronDoubleRightIcon>
           </button>

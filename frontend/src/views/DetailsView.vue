@@ -3,15 +3,17 @@ import BarPlot from '@/components/charts/BarPlot.vue';
 import DynamicBackground from '@/components/DynamicBackground.vue';
 import MainRating from '@/components/MainRating.vue';
 import LineChart from '@/components/charts/LineChart.vue';
+import ScalingLayout from '@/components/ScalingLayout.vue';
 import { useFetch } from '@/composables/fetch';
 import { useScrollDetection } from '@/composables/scroll';
 import { getEnergyTheme } from '@/functions/energy-theme';
-import { computed, onMounted, ref, watch, type Ref } from 'vue';
+import { computed, effect, onMounted, ref, watch, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import StackedAreaChart from '@/components/charts/StackedAreaChart.vue';
 import { parse } from 'vue/compiler-sfc';
 import { getEnergyString } from '@/functions/energy-string';
 import type { EnergyProductionDayDetail, PowerDetail, PriceDetail } from '@/types/EnergyProductionDay.type';
+import { breakpointsTailwind, useBreakpoints } from '@vueuse/core';
 
 // Options
 defineOptions({
@@ -19,18 +21,20 @@ defineOptions({
 });
 
 // Constants (TODO move to environment variables)
-const API_URL = 'http://localhost';
+const API_URL = 'http://192.168.178.77'; //'http://localhost';
 const API_PORT = '4000';
 
 
 // Router
 const route = useRoute();
 
+// CSS breakpoints
+const breakpoints = useBreakpoints(breakpointsTailwind);
+const greaterOrEqualSm = breakpoints.greaterOrEqual('sm')
+
 // State
 const fullscreen = ref(-1);
-
-// Composables
-const scrolled = useScrollDetection();
+const headerCollapsed = ref(false);
 
 // Fetch data
 const query = computed(() => route.query);
@@ -91,6 +95,11 @@ const lineChartData = computed(() => {
   return null;
 });
 
+// Functions
+function handleHeaderCollapse(collapsed: boolean) {
+  headerCollapsed.value = collapsed;
+}
+
 // Hooks
 onMounted(() => {
   window.scrollTo(0, 0);
@@ -98,35 +107,57 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-bind="$attrs" :class="{ 'overflow-hidden h-screen': fullscreen !== -1 }">
-    <DynamicBackground class="-z-50" :scrolled="scrolled" :theme="theme" />
-    <!-- Switch to grid with breakpoints to handle other devices? -->
-    <div class="container mx-auto py-8 flex flex-row gap-8 z-0 flex-wrap">
-      <MainRating class="flex-none w-full" :data="data" :scrolled="scrolled" :theme="theme"/>
-      <div class="flex-auto flex-shrink-0 h-[32rem] w-full rounded-2xl bg-gray-700/70 flex flex-col" @click="() => fullscreen = 1">
-        <div class="text-2xl text-white font-bold px-4 py-4"> Evolution of the electricity cost and rating </div>
-        <LineChart 
-          class="flex-auto px-4 text-white overflow-x-auto"
-          :data="lineChartData"
+  <div v-bind="$attrs">
+    <DynamicBackground class="-z-50" :scrolled="headerCollapsed" :theme="theme" />
+    <ScalingLayout 
+      class="w-full" 
+      :header-collapse-ratio=".5"
+      :scroll-offset="64" 
+      :header-collapsed-height="96"
+      :header-expanded-height="greaterOrEqualSm ? 512 : 256"
+      @collapse="(e) => handleHeaderCollapse(e)"
+    >
+      <!-- Scalable header with the day's rating  -->
+      <template #header>
+        <MainRating 
+          :data="data" 
+          :collapsed="headerCollapsed" 
+          :theme="theme" 
         />
+      </template>
+      <!-- Graphs -->
+      <div v-if="data" class="w-full px-2 pb-2 sm:px-4 sm:pb-4">
+        <div class="w-full flex flex-row flex-wrap gap-2 text-base text-white sm:container sm:mx-auto sm:gap-4 sm:text-2xl">
+          <div class="flex-auto flex flex-col gap-2 w-full h-80 px-4 py-2 rounded-2xl bg-gray-700/70 sm:h-[32rem] sm:p-4" @click="() => fullscreen = 1">
+            <div class="flex-none font-bold"> Evolution of the electricity cost and rating </div>
+            <div class="flex-auto w-full h-full overflow-x-auto">
+              <LineChart 
+                class="min-w-[1200px]"
+                :data="lineChartData"
+              />
+            </div>
+          </div>
+          <div class="flex-auto flex flex-col gap-2 w-full h-80 px-4 py-2 rounded-2xl bg-gray-700/70 sm:h-[32rem] sm:p-4">
+            <div class="flex-none font-bold"> Evolution of the electricity mix </div>
+            <div class="flex-auto w-full h-full overflow-x-auto">
+              <StackedAreaChart 
+                class="min-w-[1200px]" 
+                :data="data.power"
+              />      
+            </div> 
+          </div>
+          <div class="flex-auto flex flex-col gap-2 w-full h-80 px-4 py-2 rounded-2xl bg-gray-700/70 sm:h-[32rem] sm:p-4">
+            <div class="flex-none font-bold"> Average electricity mix </div>
+            <div class="flex-auto w-full h-full overflow-x-auto">
+              <BarPlot 
+                class="min-w-[400px]" 
+                :data="data.avgPower"
+              />
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="flex-auto h-[32rem] w-full rounded-2xl bg-gray-700/70 flex flex-col">
-        <div class="flex-none text-2xl text-white font-bold px-4 py-4"> Evolution of the electricity mix </div>
-        <StackedAreaChart 
-          class="flex-auto px-4 text-white overoverflow-x-auto scrollbar scrollbar-track-transparent scrollbar-thumb-white" 
-          :data="data.power"
-        />        
-      </div>
-      <div class="flex-auto h-[32rem] w-[28rem] rounded-2xl bg-gray-700/70 flex flex-col">
-        <div class="text-2xl text-white font-bold px-4 py-4"> Average electricity mix </div>
-        <BarPlot 
-          class="flex-auto px-4 text-white" 
-          :data="data.avgPower"
-        />
-      </div>
-    </div>
-    <!-- <div v-if="fullscreen !== -1" class="fixed inset-4 rounded-xl bg-black/70 backdrop-blur-md z-50" @click="() => fullscreen = -1">
-      <LineChart class="text-white"/>
-    </div> -->
+    </ScalingLayout>
   </div>
+
 </template>

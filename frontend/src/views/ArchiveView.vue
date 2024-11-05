@@ -15,7 +15,7 @@ defineOptions({
 const router = useRouter();
 
 // Constants (TODO move to environment variables)
-const API_URL = 'http://localhost';
+const API_URL = 'http://192.168.178.77'; // 'http://localhost';
 const API_PORT = '4000';
 
 // State
@@ -64,19 +64,21 @@ onMounted(() => {
 
 <template>
   <div v-bind="$attrs">
-    <div class="fixed -z-40 top-0 bottom-0 left-0 right-0 bg-black"></div>
-    <div class="container mx-auto py-8">
-      <RatingsList :data="data" :pagination="true" @click-item="(date) => handleItemClick(date)">
-        <template #header>
-          <RatingsListPagination 
-            :page="page" 
-            :rowsPerPage="limit"
-            :rowsCount="itemsCount"
-            @page-change="(increment) => handlePageChange(increment)"
-            @rows-per-page-change="(value) => handleRowsPerPageChange(value)"
-          />
-        </template>
-      </RatingsList>
+    <div class="fixed -z-40 top-0 h-screen left-0 right-0 bg-black"></div>
+    <div class="w-full p-2 sm:p-4">
+      <div class="w-full sm:container sm:mx-auto">
+        <RatingsList :data="data" :pagination="true" @click-item="(date) => handleItemClick(date)">
+          <template #header>
+            <RatingsListPagination 
+              :page="page" 
+              :rowsPerPage="limit"
+              :rowsCount="itemsCount"
+              @page-change="(increment) => handlePageChange(increment)"
+              @rows-per-page-change="(value) => handleRowsPerPageChange(value)"
+            />
+          </template>
+        </RatingsList>
+      </div>
     </div>
   </div>
 </template>

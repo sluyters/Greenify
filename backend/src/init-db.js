@@ -16,7 +16,7 @@ function generateFuelRows(prevRow) {
   return TYPES.map((type, index) => {
     return {
       type: type,
-      power: prevRow ? Math.max(0, prevRow[index].power + (Math.random() - 0.5) * 60) : Math.random() * 300
+      power: prevRow ? Math.max(0, prevRow[index].power + (Math.random() - 0.51) * 500) : Math.random() * 300
     }
   })
 }
@@ -75,7 +75,7 @@ if (initializeDB) {
       prev = generateEnergyRow(prev)
       forecastData.push(prev);   
     }
-    for (let i = 0; i < 24 * 4 * 35; i++) {
+    for (let i = 0; i < 24 * 4 * 50; i++) {
       prev = generateEnergyRow(prev)
       actualData.push(prev);   
     }
